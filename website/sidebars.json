@@ -1,10 +1,20 @@
 {
   "docs": {
-    "Introduction": ["introduction/quick-start", "introduction/basic-tutorial"],
-    "Using React-Redux": [
-      "using-react-redux/connect-extracting-data-with-mapStateToProps"
+    "Introduction": [
+      "introduction/quick-start",
+      "introduction/basic-tutorial",
+      "introduction/why-use-react-redux"
     ],
-    "API Reference": ["api", "api/provider"],
-    "Guides": ["troubleshooting"]
+    "Using React-Redux": [
+      "using-react-redux/connect-mapstate",
+      "using-react-redux/connect-mapdispatch"
+    ],
+    "API Reference": [
+      "api",
+      "api/provider"
+    ],
+    "Guides": [
+      "troubleshooting"
+    ]
   }
 }
