@@ -1133,6 +1133,7 @@
   }
   });
   var reactIs_1 = reactIs.isValidElementType;
+  var reactIs_2 = reactIs.isContextConsumer;
 
   /**
    * Copyright 2015, Yahoo! Inc.
@@ -1257,6 +1258,14 @@
 
   var invariant_1 = invariant;
 
+  var stringifyComponent = function stringifyComponent(Comp) {
+    try {
+      return JSON.stringify(Comp);
+    } catch (err) {
+      return String(Comp);
+    }
+  };
+
   function connectAdvanced(
   /*
     selectorFactory is a func that is responsible for returning the selector function used to
@@ -1301,12 +1310,12 @@
 
     invariant_1(renderCountProp === undefined, "renderCountProp is removed. render counting is built into the latest React dev tools profiling extension");
     invariant_1(!withRef, 'withRef is removed. To access the wrapped instance, use a ref on the connected component');
-    var customStoreWarningMessage = 'To use a custom Redux store for specific components,  create a custom React context with ' + "React.createContext(), and pass the context object to React-Redux's Provider and specific components" + ' like:  <Provider context={MyContext}><ConnectedComponent context={MyContext} /></Provider>. ' + 'You may also pass a {context : MyContext} option to connect';
+    var customStoreWarningMessage = 'To use a custom Redux store for specific components,  create a custom React context with ' + "React.createContext(), and pass the context object to React Redux's Provider and specific components" + ' like:  <Provider context={MyContext}><ConnectedComponent context={MyContext} /></Provider>. ' + 'You may also pass a {context : MyContext} option to connect';
     invariant_1(storeKey === 'store', 'storeKey has been removed and does not do anything. ' + customStoreWarningMessage);
     var Context = context;
     return function wrapWithConnect(WrappedComponent) {
       {
-        invariant_1(reactIs_1(WrappedComponent), "You must pass a component to the function returned by " + (methodName + ". Instead received " + JSON.stringify(WrappedComponent)));
+        invariant_1(reactIs_1(WrappedComponent), "You must pass a component to the function returned by " + (methodName + ". Instead received " + stringifyComponent(WrappedComponent)));
       }
 
       var wrappedComponentName = WrappedComponent.displayName || WrappedComponent.name || 'Component';
@@ -1325,7 +1334,6 @@
 
       var pure = connectOptions.pure;
       var OuterBaseComponent = React.Component;
-      var FinalWrappedComponent = WrappedComponent;
 
       if (pure) {
         OuterBaseComponent = React.PureComponent;
@@ -1336,37 +1344,35 @@
         var lastState;
         var lastDerivedProps;
         var lastStore;
+        var lastSelectorFactoryOptions;
         var sourceSelector;
-        return function selectDerivedProps(state, props, store) {
+        return function selectDerivedProps(state, props, store, selectorFactoryOptions) {
           if (pure && lastProps === props && lastState === state) {
             return lastDerivedProps;
           }
 
-          if (store !== lastStore) {
+          if (store !== lastStore || lastSelectorFactoryOptions !== selectorFactoryOptions) {
             lastStore = store;
+            lastSelectorFactoryOptions = selectorFactoryOptions;
             sourceSelector = selectorFactory(store.dispatch, selectorFactoryOptions);
           }
 
           lastProps = props;
           lastState = state;
           var nextProps = sourceSelector(state, props);
-
-          if (lastDerivedProps === nextProps) {
-            return lastDerivedProps;
-          }
-
           lastDerivedProps = nextProps;
           return lastDerivedProps;
         };
       }
 
       function makeChildElementSelector() {
-        var lastChildProps, lastForwardRef, lastChildElement;
-        return function selectChildElement(childProps, forwardRef) {
-          if (childProps !== lastChildProps || forwardRef !== lastForwardRef) {
+        var lastChildProps, lastForwardRef, lastChildElement, lastComponent;
+        return function selectChildElement(WrappedComponent, childProps, forwardRef) {
+          if (childProps !== lastChildProps || forwardRef !== lastForwardRef || lastComponent !== WrappedComponent) {
             lastChildProps = childProps;
             lastForwardRef = forwardRef;
-            lastChildElement = React__default.createElement(FinalWrappedComponent, _extends({}, childProps, {
+            lastComponent = WrappedComponent;
+            lastChildElement = React__default.createElement(WrappedComponent, _extends({}, childProps, {
               ref: forwardRef
             }));
           }
@@ -1387,11 +1393,16 @@
           invariant_1(forwardRef ? !props.wrapperProps[storeKey] : !props[storeKey], 'Passing redux store in props has been removed and does not do anything. ' + customStoreWarningMessage);
           _this.selectDerivedProps = makeDerivedPropsSelector();
           _this.selectChildElement = makeChildElementSelector();
-          _this.renderWrappedComponent = _this.renderWrappedComponent.bind(_assertThisInitialized(_assertThisInitialized(_this)));
+          _this.indirectRenderWrappedComponent = _this.indirectRenderWrappedComponent.bind(_assertThisInitialized(_assertThisInitialized(_this)));
           return _this;
         }
 
         var _proto = Connect.prototype;
+
+        _proto.indirectRenderWrappedComponent = function indirectRenderWrappedComponent(value) {
+          // calling renderWrappedComponent on prototype from indirectRenderWrappedComponent bound to `this`
+          return this.renderWrappedComponent(value);
+        };
 
         _proto.renderWrappedComponent = function renderWrappedComponent(value) {
           invariant_1(value, "Could not find \"store\" in the context of " + ("\"" + displayName + "\". Either wrap the root component in a <Provider>, ") + "or pass a custom React context provider to <Provider> and the corresponding " + ("React context consumer to " + displayName + " in connect options."));
@@ -1405,13 +1416,13 @@
             forwardedRef = this.props.forwardedRef;
           }
 
-          var derivedProps = this.selectDerivedProps(storeState, wrapperProps, store);
-          return this.selectChildElement(derivedProps, forwardedRef);
+          var derivedProps = this.selectDerivedProps(storeState, wrapperProps, store, selectorFactoryOptions);
+          return this.selectChildElement(WrappedComponent, derivedProps, forwardedRef);
         };
 
         _proto.render = function render() {
-          var ContextToUse = this.props.context || Context;
-          return React__default.createElement(ContextToUse.Consumer, null, this.renderWrappedComponent);
+          var ContextToUse = this.props.context && this.props.context.Consumer && reactIs_2(React__default.createElement(this.props.context.Consumer, null)) ? this.props.context : Context;
+          return React__default.createElement(ContextToUse.Consumer, null, this.indirectRenderWrappedComponent);
         };
 
         return Connect;
