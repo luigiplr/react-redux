@@ -11,23 +11,31 @@ sidebar_label: Quick Start
 
 ## Installation
 
-React Redux 6.x requires **React 16.4 or later.**
+React Redux 7.1 requires **React 16.8.3 or later.**
 
-To use React Redux with your React app:
+### Using Create React App
 
-```bash
-npm install --save react-redux
+The recommended way to start new apps with React Redux is by using the [official Redux+JS template](https://github.com/reduxjs/cra-template-redux) for [Create React App](https://github.com/facebook/create-react-app), which takes advantage of [Redux Toolkit](https://redux-toolkit.js.org/).
+
+```sh
+npx create-react-app my-app --template redux
 ```
 
-or
+### An Existing React App
+
+To use React Redux with your React app, install it as a dependency:
 
 ```bash
+# If you use npm:
+npm install react-redux
+
+# Or if you use Yarn:
 yarn add react-redux
 ```
 
-You'll also need to [install Redux](https://redux-docs.netlify.com/introduction/installation) and [set up a Redux store](https://redux-docs.netlify.com/recipes/configuring-your-store) in your app.
+You'll also need to [install Redux](https://redux.js.org/introduction/installation) and [set up a Redux store](https://redux.js.org/recipes/configuring-your-store/) in your app.
 
-## `<Provider />`
+## `Provider`
 
 React Redux provides `<Provider />`, which makes the Redux store available to the rest of your app:
 
@@ -74,7 +82,6 @@ export default connect(
   mapDispatchToProps
 )(Counter)
 ```
-
 
 ## Help and Discussion
 

@@ -124,9 +124,9 @@ The second parameter is normally referred to as `ownProps` by convention.
 <button onClick={() => this.props.toggleTodo(this.props.todoId)} />
 
 // binds on `props` change
-const mapDispatchToProps = (dispatch, ownProps) => {
+const mapDispatchToProps = (dispatch, ownProps) => ({
   toggleTodo: () => dispatch(toggleTodo(ownProps.todoId))
-}
+})
 ```
 
 The number of declared function parameters of `mapDispatchToProps` determines whether they receive ownProps. See notes [here](#the-arity-of-maptoprops-functions).
@@ -571,7 +571,7 @@ export default connect(
 
 The number of declared function parameters of `mapStateToProps` and `mapDispatchToProps` determines whether they receive `ownProps`
 
-> Note: `ownProps` is not passed to `mapStateToProps` and `mapDispatchToProps` if the formal definition of the function contains one mandatory parameter (function has length 1). For example, functions defined like below won't receive `ownProps` as the second argument
+> Note: `ownProps` is not passed to `mapStateToProps` and `mapDispatchToProps` if the formal definition of the function contains one mandatory parameter (function has length 1). For example, functions defined like below won't receive `ownProps` as the second argument. If the incoming value of `ownProps` is `undefined`, the default argument value will be used.
 
 ```js
 function mapStateToProps(state) {
